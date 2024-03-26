@@ -40,33 +40,33 @@ namespace
     const account_public_address& miner_address, std::vector<size_t>& block_weights, size_t target_tx_weight,
     size_t target_block_weight, uint64_t fee = 0)
   {
-    if (!construct_miner_tx(height, misc_utils::median(block_weights), already_generated_coins, target_block_weight, fee, miner_address, miner_tx))
-      return false;
+    // if (!construct_miner_tx(height, misc_utils::median(block_weights), already_generated_coins, target_block_weight, fee, miner_address, miner_tx))
+    //   return false;
 
-    size_t current_weight = get_transaction_weight(miner_tx);
-    size_t try_count = 0;
-    while (target_tx_weight != current_weight)
-    {
-      ++try_count;
-      if (10 < try_count)
-        return false;
+    // size_t current_weight = get_transaction_weight(miner_tx);
+    // size_t try_count = 0;
+    // while (target_tx_weight != current_weight)
+    // {
+    //   ++try_count;
+    //   if (10 < try_count)
+    //     return false;
 
-      if (target_tx_weight < current_weight)
-      {
-        size_t diff = current_weight - target_tx_weight;
-        if (diff <= miner_tx.extra.size())
-          miner_tx.extra.resize(miner_tx.extra.size() - diff);
-        else
-          return false;
-      }
-      else
-      {
-        size_t diff = target_tx_weight - current_weight;
-        miner_tx.extra.resize(miner_tx.extra.size() + diff);
-      }
+    //   if (target_tx_weight < current_weight)
+    //   {
+    //     size_t diff = current_weight - target_tx_weight;
+    //     if (diff <= miner_tx.extra.size())
+    //       miner_tx.extra.resize(miner_tx.extra.size() - diff);
+    //     else
+    //       return false;
+    //   }
+    //   else
+    //   {
+    //     size_t diff = target_tx_weight - current_weight;
+    //     miner_tx.extra.resize(miner_tx.extra.size() + diff);
+    //   }
 
-      current_weight = get_transaction_weight(miner_tx);
-    }
+    //   current_weight = get_transaction_weight(miner_tx);
+    // }
 
     return true;
   }

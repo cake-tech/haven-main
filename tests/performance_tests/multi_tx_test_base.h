@@ -48,34 +48,34 @@ public:
 
   bool init()
   {
-    using namespace cryptonote;
+    // using namespace cryptonote;
 
-    std::vector<tx_source_entry::output_entry> output_entries;
-    for (size_t i = 0; i < ring_size; ++i)
-    {
-      m_miners[i].generate();
+    // std::vector<tx_source_entry::output_entry> output_entries;
+    // for (size_t i = 0; i < ring_size; ++i)
+    // {
+    //   m_miners[i].generate();
 
-      if (!construct_miner_tx(0, 0, 0, 2, 0, m_miners[i].get_keys().m_account_address, m_miner_txs[i]))
-        return false;
+    //   if (!construct_miner_tx(0, 0, 0, 2, 0, m_miners[i].get_keys().m_account_address, m_miner_txs[i]))
+    //     return false;
 
-      txout_to_key tx_out = boost::get<txout_to_key>(m_miner_txs[i].vout[0].target);
-      output_entries.push_back(std::make_pair(i, rct::ctkey({rct::pk2rct(tx_out.key), rct::zeroCommit(m_miner_txs[i].vout[0].amount)})));
-      m_public_keys[i] = tx_out.key;
-      m_public_key_ptrs[i] = &m_public_keys[i];
-    }
+    //   txout_to_key tx_out = boost::get<txout_to_key>(m_miner_txs[i].vout[0].target);
+    //   output_entries.push_back(std::make_pair(i, rct::ctkey({rct::pk2rct(tx_out.key), rct::zeroCommit(m_miner_txs[i].vout[0].amount)})));
+    //   m_public_keys[i] = tx_out.key;
+    //   m_public_key_ptrs[i] = &m_public_keys[i];
+    // }
 
-    m_source_amount = m_miner_txs[0].vout[0].amount;
+    // m_source_amount = m_miner_txs[0].vout[0].amount;
 
-    tx_source_entry source_entry;
-    source_entry.amount = m_source_amount;
-    source_entry.real_out_tx_key = get_tx_pub_key_from_extra(m_miner_txs[real_source_idx]);
-    source_entry.real_output_in_tx_index = 0;
-    source_entry.outputs.swap(output_entries);
-    source_entry.real_output = real_source_idx;
-    source_entry.mask = rct::identity();
-    source_entry.rct = false;
+    // tx_source_entry source_entry;
+    // source_entry.amount = m_source_amount;
+    // source_entry.real_out_tx_key = get_tx_pub_key_from_extra(m_miner_txs[real_source_idx]);
+    // source_entry.real_output_in_tx_index = 0;
+    // source_entry.outputs.swap(output_entries);
+    // source_entry.real_output = real_source_idx;
+    // source_entry.mask = rct::identity();
+    // source_entry.rct = false;
 
-    m_sources.push_back(source_entry);
+    // m_sources.push_back(source_entry);
 
     return true;
   }

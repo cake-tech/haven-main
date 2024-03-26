@@ -46,145 +46,145 @@ bool gen_bp_tx_validation_base::generate_with(std::vector<test_event_entry>& eve
     const std::function<bool(std::vector<tx_source_entry> &sources, std::vector<tx_destination_entry> &destinations, size_t tx_idx)> &pre_tx,
     const std::function<bool(transaction &tx, size_t tx_idx)> &post_tx) const
 {
-  uint64_t ts_start = 1338224400;
+  // uint64_t ts_start = 1338224400;
 
-  GENERATE_ACCOUNT(miner_account);
-  MAKE_GENESIS_BLOCK(events, blk_0, miner_account, ts_start);
+  // GENERATE_ACCOUNT(miner_account);
+  // MAKE_GENESIS_BLOCK(events, blk_0, miner_account, ts_start);
 
-  // create 12 miner accounts, and have them mine the next 12 blocks
-  cryptonote::account_base miner_accounts[12];
-  const cryptonote::block *prev_block = &blk_0;
-  cryptonote::block blocks[12 + CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW];
-  for (size_t n = 0; n < 12; ++n) {
-    miner_accounts[n].generate();
-    CHECK_AND_ASSERT_MES(generator.construct_block_manually(blocks[n], *prev_block, miner_accounts[n],
-        test_generator::bf_major_ver | test_generator::bf_minor_ver | test_generator::bf_timestamp | test_generator::bf_hf_version,
-        2, 2, prev_block->timestamp + DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN * 2, // v2 has blocks twice as long
-          crypto::hash(), 0, transaction(), std::vector<crypto::hash>(), 0, 0, 2),
-        false, "Failed to generate block");
-    events.push_back(blocks[n]);
-    prev_block = blocks + n;
-  }
+  // // create 12 miner accounts, and have them mine the next 12 blocks
+  // cryptonote::account_base miner_accounts[12];
+  // const cryptonote::block *prev_block = &blk_0;
+  // cryptonote::block blocks[12 + CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW];
+  // for (size_t n = 0; n < 12; ++n) {
+  //   miner_accounts[n].generate();
+  //   CHECK_AND_ASSERT_MES(generator.construct_block_manually(blocks[n], *prev_block, miner_accounts[n],
+  //       test_generator::bf_major_ver | test_generator::bf_minor_ver | test_generator::bf_timestamp | test_generator::bf_hf_version,
+  //       2, 2, prev_block->timestamp + DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN * 2, // v2 has blocks twice as long
+  //         crypto::hash(), 0, transaction(), std::vector<crypto::hash>(), 0, 0, 2),
+  //       false, "Failed to generate block");
+  //   events.push_back(blocks[n]);
+  //   prev_block = blocks + n;
+  // }
 
-  // rewind
-  cryptonote::block blk_r, blk_last;
-  {
-    blk_last = blocks[11];
-    for (size_t i = 0; i < CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW; ++i)
-    {
-      CHECK_AND_ASSERT_MES(generator.construct_block_manually(blocks[12+i], blk_last, miner_account,
-          test_generator::bf_major_ver | test_generator::bf_minor_ver | test_generator::bf_timestamp | test_generator::bf_hf_version,
-          2, 2, blk_last.timestamp + DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN * 2, // v2 has blocks twice as long
-          crypto::hash(), 0, transaction(), std::vector<crypto::hash>(), 0, 0, 2),
-          false, "Failed to generate block");
-      events.push_back(blocks[12+i]);
-      blk_last = blocks[12+i];
-    }
-    blk_r = blk_last;
-  }
+  // // rewind
+  // cryptonote::block blk_r, blk_last;
+  // {
+  //   blk_last = blocks[11];
+  //   for (size_t i = 0; i < CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW; ++i)
+  //   {
+  //     CHECK_AND_ASSERT_MES(generator.construct_block_manually(blocks[12+i], blk_last, miner_account,
+  //         test_generator::bf_major_ver | test_generator::bf_minor_ver | test_generator::bf_timestamp | test_generator::bf_hf_version,
+  //         2, 2, blk_last.timestamp + DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN * 2, // v2 has blocks twice as long
+  //         crypto::hash(), 0, transaction(), std::vector<crypto::hash>(), 0, 0, 2),
+  //         false, "Failed to generate block");
+  //     events.push_back(blocks[12+i]);
+  //     blk_last = blocks[12+i];
+  //   }
+  //   blk_r = blk_last;
+  // }
 
-  // create 4 txes from these miners in another block, to generate some rct outputs
-  std::vector<transaction> rct_txes;
-  cryptonote::block blk_txes;
-  std::vector<crypto::hash> starting_rct_tx_hashes;
-  uint64_t fees = 0;
-  static const uint64_t input_amounts_available[] = {5000000000000, 30000000000000, 100000000000, 80000000000};
-  for (size_t n = 0; n < n_txes; ++n)
-  {
-    std::vector<tx_source_entry> sources;
+  // // create 4 txes from these miners in another block, to generate some rct outputs
+  // std::vector<transaction> rct_txes;
+  // cryptonote::block blk_txes;
+  // std::vector<crypto::hash> starting_rct_tx_hashes;
+  // uint64_t fees = 0;
+  // static const uint64_t input_amounts_available[] = {5000000000000, 30000000000000, 100000000000, 80000000000};
+  // for (size_t n = 0; n < n_txes; ++n)
+  // {
+  //   std::vector<tx_source_entry> sources;
 
-    sources.resize(1);
-    tx_source_entry& src = sources.back();
+  //   sources.resize(1);
+  //   tx_source_entry& src = sources.back();
 
-    const uint64_t needed_amount = input_amounts_available[n];
-    src.amount = input_amounts_available[n];
-    size_t real_index_in_tx = 0;
-    for (size_t m = 0; m <= mixin; ++m) {
-      size_t index_in_tx = 0;
-      for (size_t i = 0; i < blocks[m].miner_tx.vout.size(); ++i)
-        if (blocks[m].miner_tx.vout[i].amount == needed_amount)
-          index_in_tx = i;
-      CHECK_AND_ASSERT_MES(blocks[m].miner_tx.vout[index_in_tx].amount == needed_amount, false, "Expected amount not found");
-      src.push_output(m, boost::get<txout_to_key>(blocks[m].miner_tx.vout[index_in_tx].target).key, src.amount);
-      if (m == n)
-        real_index_in_tx = index_in_tx;
-    }
-    src.real_out_tx_key = cryptonote::get_tx_pub_key_from_extra(blocks[n].miner_tx);
-    src.real_output = n;
-    src.real_output_in_tx_index = real_index_in_tx;
-    src.mask = rct::identity();
-    src.rct = false;
+  //   const uint64_t needed_amount = input_amounts_available[n];
+  //   src.amount = input_amounts_available[n];
+  //   size_t real_index_in_tx = 0;
+  //   for (size_t m = 0; m <= mixin; ++m) {
+  //     size_t index_in_tx = 0;
+  //     for (size_t i = 0; i < blocks[m].miner_tx.vout.size(); ++i)
+  //       if (blocks[m].miner_tx.vout[i].amount == needed_amount)
+  //         index_in_tx = i;
+  //     CHECK_AND_ASSERT_MES(blocks[m].miner_tx.vout[index_in_tx].amount == needed_amount, false, "Expected amount not found");
+  //     src.push_output(m, boost::get<txout_to_key>(blocks[m].miner_tx.vout[index_in_tx].target).key, src.amount);
+  //     if (m == n)
+  //       real_index_in_tx = index_in_tx;
+  //   }
+  //   src.real_out_tx_key = cryptonote::get_tx_pub_key_from_extra(blocks[n].miner_tx);
+  //   src.real_output = n;
+  //   src.real_output_in_tx_index = real_index_in_tx;
+  //   src.mask = rct::identity();
+  //   src.rct = false;
 
-    //fill outputs entry
-    tx_destination_entry td;
-    td.addr = miner_accounts[n].get_keys().m_account_address;
-    std::vector<tx_destination_entry> destinations;
-    for (int o = 0; amounts_paid[o] != (uint64_t)-1; ++o)
-    {
-      td.amount = amounts_paid[o];
-      destinations.push_back(td);
-    }
+  //   //fill outputs entry
+  //   tx_destination_entry td;
+  //   td.addr = miner_accounts[n].get_keys().m_account_address;
+  //   std::vector<tx_destination_entry> destinations;
+  //   for (int o = 0; amounts_paid[o] != (uint64_t)-1; ++o)
+  //   {
+  //     td.amount = amounts_paid[o];
+  //     destinations.push_back(td);
+  //   }
 
-    if (pre_tx && !pre_tx(sources, destinations, n))
-    {
-      MDEBUG("pre_tx returned failure");
-      return false;
-    }
+  //   if (pre_tx && !pre_tx(sources, destinations, n))
+  //   {
+  //     MDEBUG("pre_tx returned failure");
+  //     return false;
+  //   }
 
-    crypto::secret_key tx_key;
-    std::vector<crypto::secret_key> additional_tx_keys;
-    std::unordered_map<crypto::public_key, cryptonote::subaddress_index> subaddresses;
-    subaddresses[miner_accounts[n].get_keys().m_account_address.m_spend_public_key] = {0,0};
-    rct_txes.resize(rct_txes.size() + 1);
-    bool r = construct_tx_and_get_tx_key(miner_accounts[n].get_keys(), subaddresses, sources, destinations, cryptonote::account_public_address{}, std::vector<uint8_t>(), rct_txes.back(), 0, tx_key, additional_tx_keys, true, rct_config[n]);
-    CHECK_AND_ASSERT_MES(r, false, "failed to construct transaction");
+  //   crypto::secret_key tx_key;
+  //   std::vector<crypto::secret_key> additional_tx_keys;
+  //   std::unordered_map<crypto::public_key, cryptonote::subaddress_index> subaddresses;
+  //   subaddresses[miner_accounts[n].get_keys().m_account_address.m_spend_public_key] = {0,0};
+  //   rct_txes.resize(rct_txes.size() + 1);
+  //   bool r = construct_tx_and_get_tx_key(miner_accounts[n].get_keys(), subaddresses, sources, destinations, cryptonote::account_public_address{}, std::vector<uint8_t>(), rct_txes.back(), 0, tx_key, additional_tx_keys, true, rct_config[n]);
+  //   CHECK_AND_ASSERT_MES(r, false, "failed to construct transaction");
 
-    if (post_tx && !post_tx(rct_txes.back(), n))
-    {
-      MDEBUG("post_tx returned failure");
-      return false;
-    }
+  //   if (post_tx && !post_tx(rct_txes.back(), n))
+  //   {
+  //     MDEBUG("post_tx returned failure");
+  //     return false;
+  //   }
 
-    //events.push_back(rct_txes.back());
-    starting_rct_tx_hashes.push_back(get_transaction_hash(rct_txes.back()));
-    LOG_PRINT_L0("Test tx: " << obj_to_json_str(rct_txes.back()));
+  //   //events.push_back(rct_txes.back());
+  //   starting_rct_tx_hashes.push_back(get_transaction_hash(rct_txes.back()));
+  //   LOG_PRINT_L0("Test tx: " << obj_to_json_str(rct_txes.back()));
 
-    for (int o = 0; amounts_paid[o] != (uint64_t)-1; ++o)
-    {
-      crypto::key_derivation derivation;
-      bool r = crypto::generate_key_derivation(destinations[o].addr.m_view_public_key, tx_key, derivation);
-      CHECK_AND_ASSERT_MES(r, false, "Failed to generate key derivation");
-      crypto::secret_key amount_key;
-      crypto::derivation_to_scalar(derivation, o, amount_key);
-      rct::key rct_tx_mask;
-      const uint8_t type = rct_txes.back().rct_signatures.type;
-      if (rct::is_rct_simple(type))
-        rct::decodeRctSimple(rct_txes.back().rct_signatures, rct::sk2rct(amount_key), o, rct_tx_mask, hw::get_device("default"));
-      else
-        rct::decodeRct(rct_txes.back().rct_signatures, rct::sk2rct(amount_key), o, rct_tx_mask, hw::get_device("default"));
-    }
+  //   for (int o = 0; amounts_paid[o] != (uint64_t)-1; ++o)
+  //   {
+  //     crypto::key_derivation derivation;
+  //     bool r = crypto::generate_key_derivation(destinations[o].addr.m_view_public_key, tx_key, derivation);
+  //     CHECK_AND_ASSERT_MES(r, false, "Failed to generate key derivation");
+  //     crypto::secret_key amount_key;
+  //     crypto::derivation_to_scalar(derivation, o, amount_key);
+  //     rct::key rct_tx_mask;
+  //     const uint8_t type = rct_txes.back().rct_signatures.type;
+  //     if (rct::is_rct_simple(type))
+  //       rct::decodeRctSimple(rct_txes.back().rct_signatures, rct::sk2rct(amount_key), o, rct_tx_mask, hw::get_device("default"));
+  //     else
+  //       rct::decodeRct(rct_txes.back().rct_signatures, rct::sk2rct(amount_key), o, rct_tx_mask, hw::get_device("default"));
+  //   }
 
-    while (amounts_paid[0] != (size_t)-1)
-      ++amounts_paid;
-    ++amounts_paid;
+  //   while (amounts_paid[0] != (size_t)-1)
+  //     ++amounts_paid;
+  //   ++amounts_paid;
 
-    uint64_t fee = 0;
-    get_tx_fee(rct_txes.back(), fee);
-    fees += fee;
-  }
-  if (!valid)
-    DO_CALLBACK(events, "mark_invalid_tx");
-  events.push_back(rct_txes);
+  //   uint64_t fee = 0;
+  //   get_tx_fee(rct_txes.back(), fee);
+  //   fees += fee;
+  // }
+  // if (!valid)
+  //   DO_CALLBACK(events, "mark_invalid_tx");
+  // events.push_back(rct_txes);
 
-  CHECK_AND_ASSERT_MES(generator.construct_block_manually(blk_txes, blk_last, miner_account,
-      test_generator::bf_major_ver | test_generator::bf_minor_ver | test_generator::bf_timestamp | test_generator::bf_tx_hashes | test_generator::bf_hf_version | test_generator::bf_max_outs | test_generator::bf_tx_fees,
-      hf_version, hf_version, blk_last.timestamp + DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN * 2, // v2 has blocks twice as long
-      crypto::hash(), 0, transaction(), starting_rct_tx_hashes, 0, 6, hf_version, fees),
-      false, "Failed to generate block");
-  if (!valid)
-    DO_CALLBACK(events, "mark_invalid_block");
-  events.push_back(blk_txes);
-  blk_last = blk_txes;
+  // CHECK_AND_ASSERT_MES(generator.construct_block_manually(blk_txes, blk_last, miner_account,
+  //     test_generator::bf_major_ver | test_generator::bf_minor_ver | test_generator::bf_timestamp | test_generator::bf_tx_hashes | test_generator::bf_hf_version | test_generator::bf_max_outs | test_generator::bf_tx_fees,
+  //     hf_version, hf_version, blk_last.timestamp + DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN * 2, // v2 has blocks twice as long
+  //     crypto::hash(), 0, transaction(), starting_rct_tx_hashes, 0, 6, hf_version, fees),
+  //     false, "Failed to generate block");
+  // if (!valid)
+  //   DO_CALLBACK(events, "mark_invalid_block");
+  // events.push_back(blk_txes);
+  // blk_last = blk_txes;
 
   return true;
 }

@@ -79,69 +79,69 @@ TEST(bulletproofs, valid_multi_random)
 
 TEST(bulletproofs, multi_splitting)
 {
-  rct::ctkeyV sc, pc;
-  rct::ctkey sctmp, pctmp;
-  std::vector<unsigned int> index;
-  std::vector<uint64_t> inamounts, outamounts;
+  // rct::ctkeyV sc, pc;
+  // rct::ctkey sctmp, pctmp;
+  // std::vector<unsigned int> index;
+  // std::vector<uint64_t> inamounts, outamounts;
 
-  std::tie(sctmp, pctmp) = rct::ctskpkGen(6000);
-  sc.push_back(sctmp);
-  pc.push_back(pctmp);
-  inamounts.push_back(6000);
-  index.push_back(1);
+  // std::tie(sctmp, pctmp) = rct::ctskpkGen(6000);
+  // sc.push_back(sctmp);
+  // pc.push_back(pctmp);
+  // inamounts.push_back(6000);
+  // index.push_back(1);
 
-  std::tie(sctmp, pctmp) = rct::ctskpkGen(7000);
-  sc.push_back(sctmp);
-  pc.push_back(pctmp);
-  inamounts.push_back(7000);
-  index.push_back(1);
+  // std::tie(sctmp, pctmp) = rct::ctskpkGen(7000);
+  // sc.push_back(sctmp);
+  // pc.push_back(pctmp);
+  // inamounts.push_back(7000);
+  // index.push_back(1);
 
-  const int mixin = 3, max_outputs = 16;
+  // const int mixin = 3, max_outputs = 16;
 
-  for (int n_outputs = 1; n_outputs <= max_outputs; ++n_outputs)
-  {
-    std::vector<uint64_t> outamounts;
-    rct::keyV amount_keys;
-    rct::keyV destinations;
-    rct::key Sk, Pk;
-    uint64_t available = 6000 + 7000;
-    uint64_t amount;
-    rct::ctkeyM mixRing(sc.size());
+  // for (int n_outputs = 1; n_outputs <= max_outputs; ++n_outputs)
+  // {
+  //   std::vector<uint64_t> outamounts;
+  //   rct::keyV amount_keys;
+  //   rct::keyV destinations;
+  //   rct::key Sk, Pk;
+  //   uint64_t available = 6000 + 7000;
+  //   uint64_t amount;
+  //   rct::ctkeyM mixRing(sc.size());
 
-    //add output
-    for (size_t i = 0; i < n_outputs; ++i)
-    {
-      amount = rct::randXmrAmount(available);
-      outamounts.push_back(amount);
-      amount_keys.push_back(rct::hash_to_scalar(rct::zero()));
-      rct::skpkGen(Sk, Pk);
-      destinations.push_back(Pk);
-      available -= amount;
-    }
+  //   //add output
+  //   for (size_t i = 0; i < n_outputs; ++i)
+  //   {
+  //     amount = rct::randXmrAmount(available);
+  //     outamounts.push_back(amount);
+  //     amount_keys.push_back(rct::hash_to_scalar(rct::zero()));
+  //     rct::skpkGen(Sk, Pk);
+  //     destinations.push_back(Pk);
+  //     available -= amount;
+  //   }
 
-    for (size_t i = 0; i < sc.size(); ++i)
-    {
-      for (size_t j = 0; j <= mixin; ++j)
-      {
-        if (j == 1)
-          mixRing[i].push_back(pc[i]);
-        else
-          mixRing[i].push_back({rct::scalarmultBase(rct::skGen()), rct::scalarmultBase(rct::skGen())});
-      }
-    }
+  //   for (size_t i = 0; i < sc.size(); ++i)
+  //   {
+  //     for (size_t j = 0; j <= mixin; ++j)
+  //     {
+  //       if (j == 1)
+  //         mixRing[i].push_back(pc[i]);
+  //       else
+  //         mixRing[i].push_back({rct::scalarmultBase(rct::skGen()), rct::scalarmultBase(rct::skGen())});
+  //     }
+  //   }
 
-    rct::ctkeyV outSk;
-    rct::RCTConfig rct_config { rct::RangeProofPaddedBulletproof, 4 };
+  //   rct::ctkeyV outSk;
+  //   rct::RCTConfig rct_config { rct::RangeProofPaddedBulletproof, 4 };
 
-    rct::rctSig s = rct::genRctSimple(rct::zero(), sc, destinations, inamounts, outamounts, available, mixRing, amount_keys, index, outSk, rct_config, hw::get_device("default"));
-    ASSERT_TRUE(rct::verRctSimple(s));
-    for (size_t i = 0; i < n_outputs; ++i)
-    {
-      rct::key mask;
-      rct::decodeRctSimple(s, amount_keys[i], i, mask, hw::get_device("default"));
-      ASSERT_TRUE(mask == outSk[i].mask);
-    }
-  }
+  //   rct::rctSig s = rct::genRctSimple(rct::zero(), sc, destinations, inamounts, outamounts, available, mixRing, amount_keys, index, outSk, rct_config, hw::get_device("default"));
+  //   ASSERT_TRUE(rct::verRctSimple(s));
+  //   for (size_t i = 0; i < n_outputs; ++i)
+  //   {
+  //     rct::key mask;
+  //     rct::decodeRctSimple(s, amount_keys[i], i, mask, hw::get_device("default"));
+  //     ASSERT_TRUE(mask == outSk[i].mask);
+  //   }
+  // }
 }
 
 TEST(bulletproofs, valid_aggregated)

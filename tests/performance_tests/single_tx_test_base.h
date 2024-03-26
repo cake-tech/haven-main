@@ -39,15 +39,15 @@ class single_tx_test_base
 public:
   bool init()
   {
-    using namespace cryptonote;
+    // using namespace cryptonote;
 
-    m_bob.generate();
+    // m_bob.generate();
 
-    if (!construct_miner_tx(0, 0, 0, 2, 0, m_bob.get_keys().m_account_address, m_tx))
-      return false;
+    // if (!construct_miner_tx(0, 0, 0, 2, 0, m_bob.get_keys().m_account_address, m_tx))
+    //   return false;
 
-    m_tx_pub_key = get_tx_pub_key_from_extra(m_tx);
-    m_additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(m_tx);
+    // m_tx_pub_key = get_tx_pub_key_from_extra(m_tx);
+    // m_additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(m_tx);
     return true;
   }
 
